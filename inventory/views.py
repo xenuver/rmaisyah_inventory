@@ -14,11 +14,6 @@ class HtmxModalMixin:
     Returns a modal-specific template on GET if request is HTMX.
     Returns a 204 No Content with a reload trigger on successful POST if request is HTMX.
     """
-    def get_template_names(self):
-        if self.request.headers.get('HX-Request'):
-            return ['base_modal.html']
-        return super().get_template_names()
-
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         if self.request.headers.get('HX-Request'):
@@ -64,7 +59,7 @@ class BarangListView(LoginRequiredMixin, ListView):
         return ctx
 
 
-class BarangCreateView(LoginRequiredMixin, CreateView):
+class BarangCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
     model = Barang
     form_class = BarangForm
     template_name = 'inventory/barang_form.html'
@@ -81,7 +76,7 @@ class BarangCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class BarangUpdateView(LoginRequiredMixin, UpdateView):
+class BarangUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
     model = Barang
     form_class = BarangForm
     template_name = 'inventory/barang_form.html'
@@ -98,19 +93,30 @@ class BarangUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class BarangDeleteView(LoginRequiredMixin, DeleteView):
+class BarangDeleteView(LoginRequiredMixin, HtmxModalMixin, DeleteView):
     model = Barang
     template_name = 'inventory/barang_confirm_delete.html'
     success_url = reverse_lazy('inventory:barang_list')
 
-    def get_context_data(self, **kwargs):
-        ctx = super().get_context_data(**kwargs)
-        ctx['page_title'] = 'Hapus Barang'
-        return ctx
-
     def form_valid(self, form):
-        messages.success(self.request, f'Barang "{self.object.nama}" berhasil dihapus.')
-        return super().form_valid(form)
+        from django.db.models import ProtectedError
+        try:
+            response = super().form_valid(form)
+            messages.success(self.request, 'Barang berhasil dihapus.')
+            if self.request.headers.get('HX-Request'):
+                from django.http import HttpResponse
+                res = HttpResponse(status=204)
+                res['HX-Trigger'] = 'reloadTable'
+                return res
+            return response
+        except ProtectedError:
+            messages.error(self.request, "Tidak dapat menghapus barang ini karena terikat transaksi.")
+            if self.request.headers.get('HX-Request'):
+                from django.http import HttpResponse
+                res = HttpResponse(status=204)
+                res['HX-Trigger'] = 'reloadTable'
+                return res
+            return self.form_invalid(form)
 
 
 # ── Kategori CRUD ────────────────────────────────────────────────────────
@@ -155,6 +161,10 @@ class KategoriUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
         ctx['form_title'] = f'Edit: {self.object.nama}'
         return ctx
 
+    def form_valid(self, form):
+        messages.success(self.request, 'Kategori berhasil diperbarui.')
+        return super().form_valid(form)
+
 
 class KategoriDeleteView(LoginRequiredMixin, HtmxModalMixin, DeleteView):
     model = Kategori
@@ -165,6 +175,22 @@ class KategoriDeleteView(LoginRequiredMixin, HtmxModalMixin, DeleteView):
         ctx = super().get_context_data(**kwargs)
         ctx['page_title'] = 'Hapus Kategori'
         return ctx
+
+    def form_valid(self, form):
+        from django.db.models import ProtectedError
+        try:
+            response = super().form_valid(form)
+            messages.success(self.request, 'Kategori berhasil dihapus.')
+            return response
+        except ProtectedError:
+            messages.error(self.request, "Tidak dapat menghapus Kategori karena sedang digunakan oleh Data Barang.")
+            # If HTMX request, we can just return 204 to reload and show the error toast
+            if self.request.headers.get('HX-Request'):
+                from django.http import HttpResponse
+                res = HttpResponse(status=204)
+                res['HX-Trigger'] = 'reloadTable'
+                return res
+            return self.form_invalid(form)
 
 
 # ── Satuan CRUD ──────────────────────────────────────────────────────────
@@ -192,6 +218,10 @@ class SatuanCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
         ctx['form_title'] = 'Tambah Satuan Baru'
         return ctx
 
+    def form_valid(self, form):
+        messages.success(self.request, 'Satuan berhasil ditambahkan.')
+        return super().form_valid(form)
+
 
 class SatuanUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
     model = Satuan
@@ -205,6 +235,10 @@ class SatuanUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
         ctx['form_title'] = f'Edit: {self.object.nama}'
         return ctx
 
+    def form_valid(self, form):
+        messages.success(self.request, 'Satuan berhasil diperbarui.')
+        return super().form_valid(form)
+
 
 class SatuanDeleteView(LoginRequiredMixin, HtmxModalMixin, DeleteView):
     model = Satuan
@@ -215,3 +249,18 @@ class SatuanDeleteView(LoginRequiredMixin, HtmxModalMixin, DeleteView):
         ctx = super().get_context_data(**kwargs)
         ctx['page_title'] = 'Hapus Satuan'
         return ctx
+
+    def form_valid(self, form):
+        from django.db.models import ProtectedError
+        try:
+            response = super().form_valid(form)
+            messages.success(self.request, 'Satuan berhasil dihapus.')
+            return response
+        except ProtectedError:
+            messages.error(self.request, "Tidak dapat menghapus Satuan karena sedang digunakan oleh Data Barang.")
+            if self.request.headers.get('HX-Request'):
+                from django.http import HttpResponse
+                res = HttpResponse(status=204)
+                res['HX-Trigger'] = 'reloadTable'
+                return res
+            return self.form_invalid(form)
