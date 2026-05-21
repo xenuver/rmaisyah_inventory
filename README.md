@@ -22,9 +22,30 @@
 
 ## 🚀 Fitur Unggulan
 
+<div align="center">
+  <img src="docs/screenshots/dashboard.png" alt="Tampilan Dashboard" width="800">
+  <br>
+  <em>Tampilan Dashboard Utama dengan Grafik Tren dan Statistik Real-time</em>
+</div>
+
 - ✨ **Data-Dense Modern Dashboard**: Tampilan visual yang bersih dengan *glassmorphism*, diagram tren 14-hari, dan indikator KPI (Key Performance Indicator).
 - 🔄 **Auto Stock Adjustment**: Validasi stok pintar. Stok diperbarui secara real-time saat transaksi disimpan, diedit, atau dibatalkan.
 - 🚨 **Smart Alerts**: Peringatan stok kritis (Reorder Point) dan pemantauan barang kadaluarsa di layar utama.
+
+<div align="center">
+  <img src="docs/screenshots/data-barang.png" alt="Tampilan Data Barang" width="800">
+  <br>
+  <em>Tampilan Data Barang dengan Indikator Status Kritis/Normal</em>
+</div>
+
+- ⚡ **AJAX-Powered (HTMX)**: Semua operasi tambah, edit, dan hapus barang menggunakan *Modal Popup* secara instan tanpa perlu memuat ulang halaman (*page reload*).
+
+<div align="center">
+  <img src="docs/screenshots/modal-ajax.png" alt="Tampilan Modal AJAX" width="800">
+  <br>
+  <em>Tampilan Modal Popup saat Menambah/Mengubah Data</em>
+</div>
+
 - 📱 **Fully Responsive UI**: Desain antarmuka fleksibel yang dibangun dengan *Tailwind CSS*, nyaman dibuka dari laptop kasir maupun tablet.
 
 ---
@@ -101,7 +122,15 @@ python manage.py createsuperuser
 ```
 *(Ikuti instruksi di layar untuk memasukkan Username, Email, dan Password admin).*
 
-### Langkah 5: Jalankan Aplikasi! 🚀
+### Langkah 5: (Opsional) Masukkan Data Contoh (Seed Data)
+
+Jika Anda ingin langsung melihat aplikasi dengan banyak data (Kategori, Barang, dan Riwayat Transaksi 30 hari terakhir) tanpa harus memasukkannya satu per satu secara manual, jalankan perintah ini:
+
+```powershell
+python manage.py seed_data
+```
+
+### Langkah 6: Jalankan Aplikasi! 🚀
 
 Jalankan server lokal (Development Server):
 
