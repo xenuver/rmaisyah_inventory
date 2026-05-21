@@ -1,13 +1,15 @@
-{% extends "base.html" %}
+{% extends is_htmx|yesno:"base_modal.html,base.html" %}
 
 {% block content %}
+{% if not is_htmx %}
 <div class="mb-6">
     <h2 class="text-2xl font-bold text-slate-800 tracking-tight">{{ form_title }}</h2>
     <p class="text-sm text-slate-500 mt-1">Silakan isi formulir di bawah ini dengan benar.</p>
 </div>
+{% endif %}
 
-<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden max-w-2xl">
-    <form method="post" novalidate>
+<div class="{% if not is_htmx %}bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden max-w-2xl{% endif %}">
+    <form method="post" {% if is_htmx %}hx-post="{{ request.path }}" hx-target="#modal-content"{% endif %} novalidate>
         {% csrf_token %}
         
         {% if form.non_field_errors %}
@@ -39,9 +41,15 @@
         </div>
         
         <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+            {% if is_htmx %}
+            <button type="button" onclick="closeModal()" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                Batal
+            </button>
+            {% else %}
             <a href="{% url 'transactions:masuk_list' %}" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
                 Batal
             </a>
+            {% endif %}
             <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 border border-transparent rounded-lg text-sm font-semibold text-white hover:bg-emerald-700 hover:shadow-md hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>

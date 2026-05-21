@@ -7,6 +7,9 @@ from .models import BarangMasuk, BarangKeluar
 from .forms import BarangMasukForm, BarangKeluarForm
 
 
+from inventory.views import HtmxModalMixin
+
+
 # ── Barang Masuk ─────────────────────────────────────────────────────────
 
 class BarangMasukListView(LoginRequiredMixin, ListView):
@@ -29,7 +32,7 @@ class BarangMasukListView(LoginRequiredMixin, ListView):
         return ctx
 
 
-class BarangMasukCreateView(LoginRequiredMixin, CreateView):
+class BarangMasukCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
     model = BarangMasuk
     form_class = BarangMasukForm
     template_name = 'transactions/masuk_form.html'
@@ -68,7 +71,7 @@ class BarangKeluarListView(LoginRequiredMixin, ListView):
         return ctx
 
 
-class BarangKeluarCreateView(LoginRequiredMixin, CreateView):
+class BarangKeluarCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
     model = BarangKeluar
     form_class = BarangKeluarForm
     template_name = 'transactions/keluar_form.html'

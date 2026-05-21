@@ -98,6 +98,11 @@ class BarangDeleteView(LoginRequiredMixin, HtmxModalMixin, DeleteView):
     template_name = 'inventory/barang_confirm_delete.html'
     success_url = reverse_lazy('inventory:barang_list')
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['page_title'] = 'Hapus Barang'
+        return ctx
+
     def form_valid(self, form):
         from django.db.models import ProtectedError
         try:
