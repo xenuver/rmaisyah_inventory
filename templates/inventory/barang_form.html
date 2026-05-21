@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold text-slate-800 tracking-tight">{{ form_title }}</h2>
+    <p class="text-sm text-slate-500 mt-1">Silakan isi formulir di bawah ini dengan benar.</p>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden max-w-2xl">
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="p-6 space-y-5">
+            {% for field in form %}
+            <div>
+                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                <p class="text-xs text-slate-500 mt-1.5">{{ field.help_text }}</p>
+                {% endif %}
+                {% for error in field.errors %}
+                <p class="form-error-msg">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+            <a href="{% url 'inventory:barang_list' %}" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+                Batal
+            </a>
+            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 border border-transparent rounded-lg text-sm font-semibold text-white hover:bg-brand-700 hover:shadow-md hover:-translate-y-0.5 transition-all focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/>
+                </svg>
+                Simpan
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
