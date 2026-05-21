@@ -1,0 +1,16 @@
+<!-- This template is used when HTMX requests a modal form -->
+<div class="bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all max-w-lg w-full" 
+     x-data="{}"
+     @keydown.escape.window="closeModal()">
+    
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+        <h3 class="text-lg font-bold text-slate-800 tracking-tight">{{ form_title|default:page_title }}</h3>
+        <button type="button" onclick="closeModal()" class="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 rounded-lg p-1.5 transition-colors focus:outline-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+    </div>
+
+    {% block content %}
+    {% endblock content %}
+
+</div>

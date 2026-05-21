@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends is_htmx|yesno:"base_modal.html,base.html" %}
 
 {% block content %}
-<div class="max-w-lg mx-auto mt-12">
-    <div class="bg-white rounded-xl shadow-lg border border-rose-100 overflow-hidden text-center">
+<div class="{% if not is_htmx %}max-w-lg mx-auto mt-12{% endif %}">
+    <div class="{% if not is_htmx %}bg-white rounded-xl shadow-lg border border-rose-100 overflow-hidden{% endif %} text-center">
         <div class="bg-rose-50 px-6 py-8 border-b border-rose-100">
             <div class="mx-auto w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-rose-500">
@@ -15,12 +15,18 @@
         </div>
         
         <div class="p-6 bg-white">
-            <form method="post">
+            <form method="post" {% if is_htmx %}hx-post="{{ request.path }}" hx-target="#modal-content"{% endif %}>
                 {% csrf_token %}
                 <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    {% if is_htmx %}
+                    <button type="button" onclick="closeModal()" class="inline-flex justify-center items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 w-full sm:w-auto">
+                        Batal
+                    </button>
+                    {% else %}
                     <a href="javascript:history.back()" class="inline-flex justify-center items-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 w-full sm:w-auto">
                         Batal
                     </a>
+                    {% endif %}
                     <button type="submit" class="inline-flex justify-center items-center px-4 py-2 bg-rose-600 border border-transparent rounded-lg text-sm font-semibold text-white hover:bg-rose-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 w-full sm:w-auto shadow-sm">
                         Ya, Hapus Data
                     </button>

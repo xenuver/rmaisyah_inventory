@@ -5,6 +5,36 @@ from django.contrib import messages
 
 from .models import Barang, Kategori, Satuan
 from .forms import BarangForm, KategoriForm, SatuanForm
+from django.http import HttpResponse
+
+
+class HtmxModalMixin:
+    """
+    Mixin for HTMX Modals.
+    Returns a modal-specific template on GET if request is HTMX.
+    Returns a 204 No Content with a reload trigger on successful POST if request is HTMX.
+    """
+    def get_template_names(self):
+        if self.request.headers.get('HX-Request'):
+            return ['base_modal.html']
+        return super().get_template_names()
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        if self.request.headers.get('HX-Request'):
+            # The template we actually want to render inside the modal is the original form template
+            # But we can just use the form template and change its extends via a context variable
+            # Better yet, let's just make the form template conditionally extend base_modal.html
+            ctx['is_htmx'] = True
+        return ctx
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if self.request.headers.get('HX-Request'):
+            res = HttpResponse(status=204)
+            res['HX-Trigger'] = 'reloadTable'
+            return res
+        return response
 
 
 # ── Barang CRUD ──────────────────────────────────────────────────────────
@@ -96,7 +126,7 @@ class KategoriListView(LoginRequiredMixin, ListView):
         return ctx
 
 
-class KategoriCreateView(LoginRequiredMixin, CreateView):
+class KategoriCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
     model = Kategori
     form_class = KategoriForm
     template_name = 'inventory/kategori_form.html'
@@ -113,7 +143,7 @@ class KategoriCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class KategoriUpdateView(LoginRequiredMixin, UpdateView):
+class KategoriUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
     model = Kategori
     form_class = KategoriForm
     template_name = 'inventory/kategori_form.html'
@@ -126,7 +156,7 @@ class KategoriUpdateView(LoginRequiredMixin, UpdateView):
         return ctx
 
 
-class KategoriDeleteView(LoginRequiredMixin, DeleteView):
+class KategoriDeleteView(LoginRequiredMixin, HtmxModalMixin, DeleteView):
     model = Kategori
     template_name = 'inventory/barang_confirm_delete.html'
     success_url = reverse_lazy('inventory:kategori_list')
@@ -150,7 +180,7 @@ class SatuanListView(LoginRequiredMixin, ListView):
         return ctx
 
 
-class SatuanCreateView(LoginRequiredMixin, CreateView):
+class SatuanCreateView(LoginRequiredMixin, HtmxModalMixin, CreateView):
     model = Satuan
     form_class = SatuanForm
     template_name = 'inventory/satuan_form.html'
@@ -163,7 +193,7 @@ class SatuanCreateView(LoginRequiredMixin, CreateView):
         return ctx
 
 
-class SatuanUpdateView(LoginRequiredMixin, UpdateView):
+class SatuanUpdateView(LoginRequiredMixin, HtmxModalMixin, UpdateView):
     model = Satuan
     form_class = SatuanForm
     template_name = 'inventory/satuan_form.html'
@@ -176,7 +206,7 @@ class SatuanUpdateView(LoginRequiredMixin, UpdateView):
         return ctx
 
 
-class SatuanDeleteView(LoginRequiredMixin, DeleteView):
+class SatuanDeleteView(LoginRequiredMixin, HtmxModalMixin, DeleteView):
     model = Satuan
     template_name = 'inventory/barang_confirm_delete.html'
     success_url = reverse_lazy('inventory:satuan_list')

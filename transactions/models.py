@@ -25,7 +25,12 @@ class BarangMasuk(models.Model):
         is_new = self.pk is None
         if not is_new:
             old = BarangMasuk.objects.get(pk=self.pk)
-            self.barang.stok_saat_ini -= old.jumlah
+            if old.barang == self.barang:
+                self.barang.stok_saat_ini -= old.jumlah
+            else:
+                old.barang.stok_saat_ini -= old.jumlah
+                old.barang.save(update_fields=['stok_saat_ini'])
+        
         self.barang.stok_saat_ini += self.jumlah
         self.barang.save(update_fields=['stok_saat_ini'])
         super().save(*args, **kwargs)
@@ -73,7 +78,12 @@ class BarangKeluar(models.Model):
         is_new = self.pk is None
         if not is_new:
             old = BarangKeluar.objects.get(pk=self.pk)
-            self.barang.stok_saat_ini += old.jumlah
+            if old.barang == self.barang:
+                self.barang.stok_saat_ini += old.jumlah
+            else:
+                old.barang.stok_saat_ini += old.jumlah
+                old.barang.save(update_fields=['stok_saat_ini'])
+        
         self.barang.stok_saat_ini -= self.jumlah
         self.barang.save(update_fields=['stok_saat_ini'])
         super().save(*args, **kwargs)

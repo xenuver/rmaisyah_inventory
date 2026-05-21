@@ -48,6 +48,10 @@
                 display: none;
             }
             /* Hide scrollbar for IE, Edge and Firefox */
+            .no-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
             /* Form Elements */
             .form-input, .form-select, .form-textarea {
                 @apply w-full pl-3 pr-3 py-2 border border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors shadow-sm;
@@ -60,11 +64,33 @@
             }
         }
     </style>
-
     
     {% block extra_head %}{% endblock %}
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+    <style>
+        .htmx-indicator{
+            display:none;
+        }
+        .htmx-request .htmx-indicator{
+            display:inline;
+        }
+        .htmx-request.htmx-indicator{
+            display:inline;
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased overflow-hidden h-screen flex">
+<body class="bg-slate-50 text-slate-900 font-sans antialiased overflow-hidden h-screen flex" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    
+    <!-- Modal Container (HTMX Target) -->
+    <div id="modal-container" class="fixed inset-0 z-[100] hidden">
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity cursor-pointer" onclick="closeModal()"></div>
+        <div class="flex flex-col items-center justify-center min-h-screen p-4 text-center sm:p-0 pointer-events-none">
+            <div id="modal-content" class="relative text-left shadow-xl transition-all sm:my-8 w-full max-w-lg pointer-events-auto">
+                <!-- HTMX injects content here -->
+            </div>
+        </div>
+    </div>
     
     <!-- Sidebar Overlay (Mobile) -->
     <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 lg:hidden hidden transition-opacity duration-300" id="sidebarOverlay"></div>
@@ -73,14 +99,8 @@
     {% include "components/sidebar.html" %}
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
-        <!-- Sidebar Toggle (Mobile) - Absolute positioned to float over main content on mobile -->
-        <button id="sidebarToggle" class="lg:hidden absolute top-3 left-4 z-50 p-2 rounded-lg bg-white shadow-sm border border-slate-200 text-slate-600 hover:text-brand-600 focus:outline-none transition-colors" aria-label="Toggle menu">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
-            </svg>
-        </button>
-
+    <div id="mainContent" class="flex-1 flex flex-col min-w-0 overflow-hidden relative transition-all duration-300 lg:ml-64">
+        
         <!-- Topbar -->
         {% include "components/topbar.html" %}
 
@@ -112,21 +132,49 @@
 
     <!-- Scripts -->
     <script>
-        // Sidebar Mobile Toggle
         document.addEventListener('DOMContentLoaded', () => {
             const sidebar = document.getElementById('sidebar');
-            const toggle = document.getElementById('sidebarToggle');
+            const mainContent = document.getElementById('mainContent');
+            const toggleBtn = document.getElementById('sidebarToggle');
             const overlay = document.getElementById('sidebarOverlay');
 
-            if (toggle && sidebar && overlay) {
-                toggle.addEventListener('click', () => {
-                    sidebar.classList.toggle('-translate-x-full');
-                    overlay.classList.toggle('hidden');
+            // Sidebar Toggle Logic
+            if (toggleBtn && sidebar && mainContent) {
+                toggleBtn.addEventListener('click', () => {
+                    // Mobile Behavior
+                    if (window.innerWidth < 1024) {
+                        sidebar.classList.toggle('-translate-x-full');
+                        overlay.classList.toggle('hidden');
+                    } 
+                    // Desktop Behavior
+                    else {
+                        sidebar.classList.toggle('lg:translate-x-0');
+                        mainContent.classList.toggle('lg:ml-64');
+                    }
                 });
+            }
 
+            if (overlay) {
                 overlay.addEventListener('click', () => {
                     sidebar.classList.add('-translate-x-full');
                     overlay.classList.add('hidden');
+                });
+            }
+
+            // Profile Dropdown Logic
+            const profileBtn = document.getElementById('profileBtn');
+            const profileDropdown = document.getElementById('profileDropdown');
+            if (profileBtn && profileDropdown) {
+                profileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('hidden');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                        profileDropdown.classList.add('hidden');
+                    }
                 });
             }
 
@@ -139,6 +187,25 @@
                     setTimeout(() => msg.remove(), 300);
                 }, 4000);
             });
+        });
+
+        // HTMX Modal Logic
+        function closeModal() {
+            document.getElementById('modal-container').classList.add('hidden');
+            setTimeout(() => {
+                document.getElementById('modal-content').innerHTML = '';
+            }, 300);
+        }
+
+        document.body.addEventListener('htmx:afterSwap', (evt) => {
+            if (evt.detail.target.id === 'modal-content') {
+                document.getElementById('modal-container').classList.remove('hidden');
+            }
+        });
+
+        document.body.addEventListener('reloadTable', function() {
+            closeModal();
+            // Optional: trigger success toast
         });
     </script>
     {% block extra_js %}{% endblock %}
