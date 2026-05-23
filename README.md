@@ -130,6 +130,33 @@ Jika Anda ingin langsung melihat aplikasi dengan banyak data (Kategori, Barang, 
 python manage.py seed_data
 ```
 
+> ⚠️ **CATATAN PENTING: Jika database Anda masih menggunakan struktur model lama**
+> 
+> Jika Anda sebelumnya sudah memiliki data lama di PostgreSQL sebelum perubahan arsitektur FIFO/Batch ini (yaitu saat field `tanggal_kadaluarsa` masih menempel di tabel Barang dan belum ada tabel `StokBatch` atau `BarangKeluarBatch`), menjalankan migrasi atau `seed_data` dapat menyebabkan error kecocokan skema.
+> 
+> Ikuti langkah berikut untuk mereset database PostgreSQL secara bersih:
+> 
+> 1. **Hapus dan Buat Ulang Database PostgreSQL:**
+>    Masuk ke terminal PostgreSQL (`psql` atau pgAdmin) dan jalankan perintah SQL berikut:
+>    ```sql
+>    DROP DATABASE rmaisyah_inventory;
+>    CREATE DATABASE rmaisyah_inventory;
+>    ```
+> 2. **Jalankan Ulang Migrasi Skema Baru:**
+>    Jalankan migrasi untuk membangun tabel-tabel baru:
+>    ```powershell
+>    python manage.py migrate
+>    ```
+> 3. **Buat Akun Admin (Superuser) Baru:**
+>    ```powershell
+>    python manage.py createsuperuser
+>    ```
+> 4. **Jalankan Ulang Seed Data:**
+>    ```powershell
+>    python manage.py seed_data
+>    ```
+
+
 ### Langkah 6: Jalankan Aplikasi! 🚀
 
 Jalankan server lokal (Development Server):
