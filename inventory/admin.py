@@ -16,7 +16,7 @@ class SatuanAdmin(admin.ModelAdmin):
 
 @admin.register(Barang)
 class BarangAdmin(admin.ModelAdmin):
-    list_display = ('nama', 'kategori', 'satuan', 'stok_saat_ini', 'stok_minimal', 'tanggal_kadaluarsa')
+    list_display = ('nama', 'kategori', 'satuan', 'stok_saat_ini', 'stok_minimal')
     list_filter = ('kategori', 'satuan')
     search_fields = ('nama',)
-    list_editable = ('stok_saat_ini',)
+

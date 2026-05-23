@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Ledger Inventaris - RM Aisyah</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 9pt;
+            color: #333;
+            line-height: 1.4;
+        }
+        .header {
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 18pt;
+            margin: 0;
+            font-weight: bold;
+            color: #111;
+        }
+        .header p {
+            font-size: 10pt;
+            margin: 5px 0 0 0;
+            color: #666;
+        }
+        .meta-table {
+            width: 100%;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+        }
+        .meta-table td {
+            padding: 8px 12px;
+            vertical-align: top;
+        }
+        .meta-label {
+            font-size: 8pt;
+            color: #888;
+            font-weight: bold;
+        }
+        .meta-value {
+            font-size: 9pt;
+            color: #111;
+            font-weight: bold;
+            margin-top: 2px;
+        }
+        .ledger-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .ledger-table th {
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            padding: 6px 8px;
+            font-weight: bold;
+            text-align: left;
+            font-size: 8pt;
+            color: #444;
+        }
+        .ledger-table td {
+            border: 1px solid #ccc;
+            padding: 6px 8px;
+            vertical-align: top;
+        }
+        .type-masuk {
+            color: #047857;
+            font-weight: bold;
+        }
+        .type-keluar {
+            color: #be123c;
+            font-weight: bold;
+        }
+        .amount-masuk {
+            color: #047857;
+            font-weight: bold;
+        }
+        .amount-keluar {
+            color: #be123c;
+            font-weight: bold;
+        }
+        .signature-container {
+            margin-top: 40px;
+            width: 100%;
+        }
+        .signature-box {
+            text-align: center;
+            font-size: 9pt;
+        }
+        .signature-line {
+            border-top: 1px solid #999;
+            margin-top: 50px;
+            padding-top: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Document Header -->
+    <div class="header">
+        <table style="width: 100%;">
+            <tr>
+                <td>
+                    <h1>LAPORAN BUKU BESAR (LEDGER) INVENTARIS</h1>
+                    <p>Rumah Makan Aisyah Ngabang — Kalimantan Barat</p>
+                </td>
+                <td style="text-align: right; font-size: 8pt; color: #666; vertical-align: bottom;">
+                    <p>Tanggal Cetak: <strong>{{ print_date|date:"d F Y H:i" }}</strong></p>
+                    <p style="margin-top: 2px;">Pencetak: <strong>{{ request.user.username }}</strong></p>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Filters Applied -->
+    <table class="meta-table">
+        <tr>
+            <td style="width: 33%;">
+                <div class="meta-label">TIPE TRANSAKSI</div>
+                <div class="meta-value">
+                    {% if tipe == 'masuk' %}Hanya Barang Masuk{% elif tipe == 'keluar' %}Hanya Barang Keluar{% else %}Semua Transaksi (Masuk & Keluar){% endif %}
+                </div>
+            </td>
+            <td style="width: 33%;">
+                <div class="meta-label">PERIODE LAPORAN</div>
+                <div class="meta-value">
+                    {% if tanggal_mulai or tanggal_akhir %}
+                        {{ tanggal_mulai|default:"Awal Mulai" }} s.d. {{ tanggal_akhir|default:"Hari Ini" }}
+                    {% else %}
+                        Seluruh Periode
+                    {% endif %}
+                </div>
+            </td>
+            <td style="width: 33%;">
+                <div class="meta-label">PENCARIAN BARANG</div>
+                <div class="meta-value">{{ q|default:"Semua Barang" }}</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Ledger Table -->
+    <table class="ledger-table">
+        <thead>
+            <tr>
+                <th style="width: 12%;">Tanggal</th>
+                <th style="width: 10%;">Tipe</th>
+                <th style="width: 25%;">Nama Barang</th>
+                <th style="width: 13%;">Jumlah</th>
+                <th style="width: 22%;">Detail Transaksi</th>
+                <th style="width: 18%;">Catatan</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in ledger_entries %}
+            <tr>
+                <td style="white-space: nowrap;">{{ entry.tanggal|date:"d M Y" }}</td>
+                <td>
+                    {% if entry.type == 'masuk' %}
+                    <span class="type-masuk">MASUK</span>
+                    {% else %}
+                    <span class="type-keluar">KELUAR</span>
+                    {% endif %}
+                </td>
+                <td style="font-weight: bold;">{{ entry.barang }}</td>
+                <td class="{% if entry.type == 'masuk' %}amount-masuk{% else %}amount-keluar{% endif %}">
+                    {% if entry.type == 'masuk' %}+{% else %}-{% endif %}{{ entry.jumlah }} {{ entry.satuan }}
+                </td>
+                <td>
+                    {{ entry.supplier_atau_alasan }}
+                    {% if entry.tanggal_kadaluarsa %}
+                    <div style="font-size: 7.5pt; color: #888; margin-top: 2px;">Exp: {{ entry.tanggal_kadaluarsa|date:"d M Y" }}</div>
+                    {% endif %}
+                </td>
+                <td>{{ entry.keterangan|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 20px; color: #888;">
+                    Tidak ada log transaksi yang memenuhi kriteria filter.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Signatures -->
+    <table class="signature-container">
+        <tr>
+            <td class="signature-box" style="width: 45%;">
+                <p>Dipersiapkan Oleh,</p>
+                <div class="signature-line">
+                    {{ request.user.username }}
+                    <div style="font-size: 7.5pt; font-weight: normal; color: #777; margin-top: 2px;">Staff Admin Gudang</div>
+                </div>
+            </td>
+            <td style="width: 10%;"></td>
+            <td class="signature-box" style="width: 45%;">
+                <p>Mengetahui & Menyetujui,</p>
+                <div class="signature-line">
+                    Owner / Manager
+                    <div style="font-size: 7.5pt; font-weight: normal; color: #777; margin-top: 2px;">RM Aisyah Ngabang</div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

@@ -23,29 +23,39 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         # ── Stat Cards ───────────────────────────────────────────────
         ctx['total_barang'] = barang_qs.count()
         ctx['stok_kritis'] = barang_qs.filter(stok_saat_ini__lte=F('stok_minimal')).count()
-        ctx['mendekati_kadaluarsa'] = barang_qs.filter(
+        
+        from transactions.models import StokBatch
+        ctx['mendekati_kadaluarsa'] = StokBatch.objects.filter(
+            stok_sisa__gt=0,
             tanggal_kadaluarsa__isnull=False,
             tanggal_kadaluarsa__lte=week_later,
         ).count()
+        
         ctx['transaksi_hari_ini'] = (
             BarangMasuk.objects.filter(tanggal=today).count()
             + BarangKeluar.objects.filter(tanggal=today).count()
         )
 
-        # ── Stok Kritis List ─────────────────────────────────────────
-        kritis_items = []
-        for b in barang_qs:
-            if b.is_stok_kritis:
-                kritis_items.append(b)
-        ctx['kritis_items'] = kritis_items
-
-        # ── Mendekati Kadaluarsa List ────────────────────────────────
-        ctx['kadaluarsa_items'] = list(
-            barang_qs.filter(
-                tanggal_kadaluarsa__isnull=False,
-                tanggal_kadaluarsa__lte=week_later,
-            ).order_by('tanggal_kadaluarsa')[:10]
+        # ── Stok Kritis List (Optimasi database-level) ────────────────
+        ctx['kritis_items'] = list(
+            barang_qs.filter(stok_saat_ini__lte=F('stok_minimal'))[:10]
         )
+
+        # ── Mendekati Kadaluarsa List (Menggunakan StokBatch FIFO) ────
+        expiring_batches = StokBatch.objects.filter(
+            stok_sisa__gt=0,
+            tanggal_kadaluarsa__isnull=False,
+            tanggal_kadaluarsa__lte=week_later,
+        ).select_related('barang', 'barang__satuan').order_by('tanggal_kadaluarsa')[:10]
+
+        kadaluarsa_items = []
+        for batch in expiring_batches:
+            kadaluarsa_items.append({
+                'nama': batch.barang.nama,
+                'tanggal_kadaluarsa': batch.tanggal_kadaluarsa,
+            })
+        ctx['kadaluarsa_items'] = kadaluarsa_items
+
 
         # ── Recent Activity (last 10 combined) ───────────────────────
         recent_masuk = BarangMasuk.objects.select_related('barang', 'barang__satuan').order_by('-created_at')[:10]

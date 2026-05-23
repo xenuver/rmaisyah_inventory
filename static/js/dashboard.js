@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     Chart.defaults.font.family = "'Inter', sans-serif";
 
-    // ── Stock Trend (Line Chart) ─────────────────────────────────────
+    // ── Stock Trend (Bar Chart - Side by Side) ────────────────────────
     const trendCtx = document.getElementById('trendChart');
     if (trendCtx) {
         const labels = JSON.parse(trendCtx.dataset.labels || '[]');
@@ -17,31 +17,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         new Chart(trendCtx, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: formattedLabels,
                 datasets: [
                     {
                         label: 'Barang Masuk',
                         data: masuk,
-                        borderColor: '#059669',
-                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 3,
-                        pointHoverRadius: 6,
+                        backgroundColor: '#10B981', // Emerald 500
+                        borderRadius: 4,
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.7,
                     },
                     {
                         label: 'Barang Keluar',
                         data: keluar,
-                        borderColor: '#DC2626',
-                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 3,
-                        pointHoverRadius: 6,
+                        backgroundColor: '#EF4444', // Red 500
+                        borderRadius: 4,
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.7,
                     }
                 ]
             },
@@ -54,20 +48,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         position: 'top',
                         labels: {
                             usePointStyle: true,
-                            padding: 20,
-                            font: { size: 13 }
+                            padding: 15,
+                            font: { size: 12, weight: '500' }
                         }
                     }
                 },
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { font: { size: 11 } }
+                        ticks: { font: { size: 10 } }
                     },
                     y: {
                         beginAtZero: true,
-                        grid: { color: 'rgba(0,0,0,0.05)' },
-                        ticks: { font: { size: 11 } }
+                        grid: { color: 'rgba(0,0,0,0.04)' },
+                        ticks: { font: { size: 10 } }
                     }
                 }
             }
@@ -81,9 +75,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const values = JSON.parse(kategoriCtx.dataset.values || '[]');
 
         const colors = [
-            '#7C3AED', '#F97316', '#059669', '#2563EB',
-            '#EC4899', '#14B8A6', '#8B5CF6', '#F59E0B',
-            '#6366F1', '#EF4444'
+            '#6366F1', // Indigo
+            '#3B82F6', // Blue
+            '#10B981', // Emerald
+            '#F59E0B', // Amber
+            '#EC4899', // Pink
+            '#8B5CF6', // Violet
+            '#EF4444', // Red
+            '#14B8A6', // Teal
+            '#F97316', // Orange
+            '#6B7280'  // Gray
         ];
 
         new Chart(kategoriCtx, {
@@ -95,20 +96,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     backgroundColor: colors.slice(0, labels.length),
                     borderWidth: 2,
                     borderColor: '#FFFFFF',
-                    hoverOffset: 8,
+                    hoverOffset: 6,
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                cutout: '65%',
+                cutout: '70%',
                 plugins: {
                     legend: {
-                        position: 'bottom',
+                        position: 'right',
                         labels: {
                             usePointStyle: true,
-                            padding: 16,
-                            font: { size: 12 }
+                            padding: 12,
+                            font: { size: 11, weight: '500' }
                         }
                     }
                 }
