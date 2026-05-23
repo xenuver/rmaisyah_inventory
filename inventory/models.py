@@ -39,9 +39,6 @@ class Barang(models.Model):
         default=0, help_text='Batas minimum stok sebelum sistem merekomendasikan pemesanan ulang'
     )
     stok_saat_ini = models.IntegerField(default=0)
-    tanggal_kadaluarsa = models.DateField(
-        null=True, blank=True, help_text='Kosongkan jika tidak memiliki tanggal kadaluarsa'
-    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -59,8 +56,31 @@ class Barang(models.Model):
 
     @property
     def is_mendekati_kadaluarsa(self):
-        if not self.tanggal_kadaluarsa:
-            return False
         from django.utils import timezone
         from datetime import timedelta
-        return self.tanggal_kadaluarsa <= (timezone.now().date() + timedelta(days=7))
+        week_later = timezone.now().date() + timedelta(days=7)
+        return self.batches.filter(
+            jumlah_sekarang__gt=0,
+            tanggal_kadaluarsa__isnull=False,
+            tanggal_kadaluarsa__lte=week_later
+        ).exists()
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        initial_stok = self.stok_saat_ini
+        
+        if is_new and initial_stok > 0:
+            self.stok_saat_ini = 0
+            
+        super().save(*args, **kwargs)
+        
+        if is_new and initial_stok > 0:
+            from transactions.models import BarangMasuk
+            from django.utils import timezone
+            BarangMasuk.objects.create(
+                barang=self,
+                jumlah=initial_stok,
+                supplier='Sistem (Stok Awal)',
+                tanggal=timezone.now().date(),
+                keterangan='Stok awal saat pendaftaran barang baru.'
+            )

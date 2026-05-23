@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Buku Besar Mutasi Barang</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333333;
+            font-size: 10pt;
+            line-height: 1.4;
+        }
+        .header {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1e293b;
+            padding-bottom: 10px;
+        }
+        .title {
+            font-size: 18pt;
+            font-weight: bold;
+            color: #0f172a;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .subtitle {
+            font-size: 11pt;
+            color: #475569;
+            margin: 5px 0 0 0;
+        }
+        .meta-info {
+            margin-top: 5px;
+            font-size: 9pt;
+            color: #64748b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th {
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 8px 6px;
+            font-size: 9pt;
+            font-weight: bold;
+            color: #1e293b;
+            text-align: left;
+            text-transform: uppercase;
+        }
+        td {
+            border: 1px solid #e2e8f0;
+            padding: 8px 6px;
+            font-size: 8.5pt;
+            color: #334155;
+            vertical-align: top;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .badge-masuk {
+            color: #047857;
+            font-weight: bold;
+        }
+        .badge-keluar {
+            color: #be123c;
+            font-weight: bold;
+        }
+        .qty-masuk {
+            color: #059669;
+            font-weight: bold;
+        }
+        .qty-keluar {
+            color: #dc2626;
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 8pt;
+            color: #94a3b8;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="title">Rumah Makan Aisyah Ngabang</div>
+        <div class="subtitle">Laporan Buku Besar Mutasi Barang (Ledger Log)</div>
+        <div class="meta-info">
+            Periode: {{ start_date|default:"Awal" }} s.d {{ end_date|default:"Kini" }} 
+            &nbsp;|&nbsp; Dicetak pada: {{ print_time|date:"d M Y, H:i" }}
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th width="5%" class="text-center">No</th>
+                <th width="15%">Tanggal & Waktu</th>
+                <th width="20%">Nama Barang</th>
+                <th width="15%">Kategori</th>
+                <th width="10%" class="text-center">Tipe</th>
+                <th width="12%">Jumlah</th>
+                <th width="13%">Detail Info</th>
+                <th width="15%">Keterangan</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in ledger_list %}
+            <tr>
+                <td class="text-center">{{ forloop.counter }}</td>
+                <td>{{ item.created_at|date:"d M Y, H:i" }}</td>
+                <td><strong>{{ item.barang.nama }}</strong></td>
+                <td>{{ item.barang.kategori.nama }}</td>
+                <td class="text-center">
+                    {% if item.tipe == 'masuk' %}
+                    <span class="badge-masuk">MASUK</span>
+                    {% else %}
+                    <span class="badge-keluar">KELUAR</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.tipe == 'masuk' %}
+                    <span class="qty-masuk">+{{ item.jumlah }} {{ item.barang.satuan.nama }}</span>
+                    {% else %}
+                    <span class="qty-keluar">-{{ item.jumlah }} {{ item.barang.satuan.nama }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.tipe == 'masuk' %}
+                    Sup: {{ item.supplier|default:"—" }}
+                    {% else %}
+                    Alasan: {{ item.get_alasan_display }}
+                    {% endif %}
+                </td>
+                <td>{{ item.keterangan|default:"—" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center" style="padding: 30px;">
+                    Tidak ada data riwayat transaksi mutasi barang.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Dokumen ini dibuat otomatis oleh Sistem Inventaris RM Aisyah
+    </div>
+
+</body>
+</html>

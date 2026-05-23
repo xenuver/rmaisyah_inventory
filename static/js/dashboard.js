@@ -17,31 +17,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         new Chart(trendCtx, {
-            type: 'line',
+            type: 'bar',
             data: {
                 labels: formattedLabels,
                 datasets: [
                     {
                         label: 'Barang Masuk',
                         data: masuk,
-                        borderColor: '#059669',
-                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 3,
-                        pointHoverRadius: 6,
+                        backgroundColor: '#059669',
+                        borderRadius: 4,
+                        borderWidth: 0,
                     },
                     {
                         label: 'Barang Keluar',
                         data: keluar,
-                        borderColor: '#DC2626',
-                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                        borderWidth: 2.5,
-                        tension: 0.4,
-                        fill: true,
-                        pointRadius: 3,
-                        pointHoverRadius: 6,
+                        backgroundColor: '#DC2626',
+                        borderRadius: 4,
+                        borderWidth: 0,
                     }
                 ]
             },
@@ -104,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cutout: '65%',
                 plugins: {
                     legend: {
-                        position: 'bottom',
+                        position: 'right',
                         labels: {
                             usePointStyle: true,
                             padding: 16,

@@ -4,13 +4,24 @@ from datetime import timedelta
 import random
 
 from inventory.models import Kategori, Satuan, Barang
-from transactions.models import BarangMasuk, BarangKeluar
+from transactions.models import BarangMasuk, BarangKeluar, StokBatch, BarangKeluarBatch
 
 class Command(BaseCommand):
     help = 'Seed database with dummy data for Rumah Makan Aisyah'
 
     def handle(self, *args, **kwargs):
-        self.stdout.write('Seeding data...')
+        self.stdout.write('Clearing existing data...')
+        
+        # Hapus data secara teratur untuk menghindari ProtectedError
+        BarangKeluarBatch.objects.all().delete()
+        StokBatch.objects.all().delete()
+        BarangMasuk.objects.all().delete()
+        BarangKeluar.objects.all().delete()
+        Barang.objects.all().delete()
+        Kategori.objects.all().delete()
+        Satuan.objects.all().delete()
+
+        self.stdout.write('Seeding fresh data...')
 
         # 1. Kategori
         kategoris = ['Bahan Pokok', 'Sayuran', 'Bumbu & Rempah', 'Daging & Ikan', 'Minuman', 'Alat Kebersihan', 'Lainnya']
@@ -57,82 +68,105 @@ class Command(BaseCommand):
 
         barang_objs = []
         for nama, kat_nama, sat_nama, min_stok in barangs_data:
-            obj, created = Barang.objects.get_or_create(
+            obj = Barang.objects.create(
                 nama=nama,
-                defaults={
-                    'kategori': kat_objs[kat_nama],
-                    'satuan': sat_objs[sat_nama],
-                    'stok_minimal': min_stok,
-                    'stok_saat_ini': 0,
-                    'tanggal_kadaluarsa': timezone.now().date() + timedelta(days=random.randint(10, 180)) if kat_nama in ['Bahan Pokok', 'Minuman', 'Bumbu & Rempah'] else None
-                }
+                kategori=kat_objs[kat_nama],
+                satuan=sat_objs[sat_nama],
+                stok_minimal=min_stok,
+                stok_saat_ini=0
             )
-            if created:
-                barang_objs.append(obj)
-            else:
-                barang_objs.append(obj)
+            barang_objs.append(obj)
 
-        self.stdout.write(f'Created/Found {len(kategoris)} Kategori, {len(satuans)} Satuan, {len(barangs_data)} Barang')
+        self.stdout.write(f'Created {len(kategoris)} Kategori, {len(satuans)} Satuan, {len(barangs_data)} Barang')
 
-        # 4. Generate Transactions (Masuk & Keluar) over the last 30 days
+        # 4. Generate Events (Masuk & Keluar) over the last 30 days
         now = timezone.now()
         suppliers = ['PT. Pangan Makmur', 'Toko Sembako Abadi', 'Pasar Tradisional Induk', 'Agen Telur Berkah']
-        alasan_keluar = ['TERJUAL', 'DIPAKAI', 'RUSAK', 'KADALUARSA', 'LAINNYA']
-
-        # Clear existing transactions to avoid piling up if run multiple times
-        BarangMasuk.objects.all().delete()
-        BarangKeluar.objects.all().delete()
         
-        # Reset stok to 0
-        for b in Barang.objects.all():
-            b.stok_saat_ini = 0
-            b.save()
-
-        self.stdout.write('Generating transactions...')
-        
-        for _ in range(150): # 150 incoming transactions
-            b = random.choice(barang_objs)
+        events = []
+        # Generate 120 incoming events
+        for _ in range(120):
             days_ago = random.randint(0, 30)
             tgl = (now - timedelta(days=days_ago)).date()
-            qty = random.randint(10, 100)
+            events.append({
+                'type': 'masuk',
+                'tanggal': tgl,
+            })
             
-            bm = BarangMasuk.objects.create(
-                barang=b,
-                jumlah=qty,
-                supplier=random.choice(suppliers),
-                keterangan='Restock rutin',
-                tanggal=tgl
-            )
-            # Override created_at
-            bm.created_at = now - timedelta(days=days_ago, hours=random.randint(1, 10))
-            bm.save()
-
-        for _ in range(300): # 300 outgoing transactions
-            b = random.choice(barang_objs)
-            if b.stok_saat_ini <= 0:
-                continue
-            
+        # Generate 250 outgoing events
+        for _ in range(250):
             days_ago = random.randint(0, 30)
             tgl = (now - timedelta(days=days_ago)).date()
+            events.append({
+                'type': 'keluar',
+                'tanggal': tgl,
+            })
             
-            # Ensure we don't go negative
-            max_qty = min(b.stok_saat_ini, random.randint(1, 15))
-            if max_qty == 0:
-                continue
+        # Urutkan secara kronologis (sangat penting untuk keandalan FIFO dan validasi stok)
+        events.sort(key=lambda x: x['tanggal'])
+
+        self.stdout.write(f'Generated {len(events)} events. Processing chronologically...')
+        
+        masuk_count = 0
+        keluar_count = 0
+
+        for ev in events:
+            tgl = ev['tanggal']
+            b = random.choice(barang_objs)
+            
+            if ev['type'] == 'masuk':
+                qty = random.randint(15, 80)
+                exp_date = None
+                if b.kategori.nama in ['Bahan Pokok', 'Minuman', 'Bumbu & Rempah']:
+                    exp_date = tgl + timedelta(days=random.randint(14, 150))
                 
-            alasan = random.choices(
-                ['pemakaian_dapur', 'rusak', 'kadaluarsa', 'lainnya'], 
-                weights=[70, 5, 5, 20]
-            )[0]
-            
-            bk = BarangKeluar.objects.create(
-                barang=b,
-                jumlah=max_qty,
-                alasan=alasan,
-                keterangan='Penggunaan dapur harian' if alasan == 'pemakaian_dapur' else 'Lainnya',
-                tanggal=tgl
-            )
-            bk.created_at = now - timedelta(days=days_ago, hours=random.randint(1, 10))
-            bk.save()
+                bm = BarangMasuk.objects.create(
+                    barang=b,
+                    jumlah=qty,
+                    supplier=random.choice(suppliers),
+                    keterangan='Restock pasokan dapur',
+                    tanggal=tgl,
+                    tanggal_kadaluarsa=exp_date
+                )
+                
+                # Update created_at untuk visualisasi yang rapi
+                created_datetime = timezone.make_aware(
+                    timezone.datetime.combine(tgl, timezone.datetime.min.time()) + 
+                    timedelta(hours=random.randint(1, 23), minutes=random.randint(0, 59))
+                )
+                BarangMasuk.objects.filter(pk=bm.pk).update(created_at=created_datetime)
+                if hasattr(bm, 'batch'):
+                    bm.batch.created_at = created_datetime
+                    bm.batch.save(update_fields=['created_at'])
+                
+                masuk_count += 1
+            else:
+                # Muat ulang dari db untuk mendapatkan sisa stok terkini
+                b.refresh_from_db()
+                if b.stok_saat_ini <= 0:
+                    continue
+                
+                qty = random.randint(1, min(b.stok_saat_ini, 15))
+                alasan = random.choices(
+                    ['pemakaian_dapur', 'rusak', 'kadaluarsa', 'lainnya'], 
+                    weights=[85, 5, 2, 8]
+                )[0]
+                
+                bk = BarangKeluar.objects.create(
+                    barang=b,
+                    jumlah=qty,
+                    alasan=alasan,
+                    keterangan='Pemakaian dapur harian' if alasan == 'pemakaian_dapur' else 'Pembersihan bahan rusak',
+                    tanggal=tgl
+                )
+                
+                created_datetime = timezone.make_aware(
+                    timezone.datetime.combine(tgl, timezone.datetime.min.time()) + 
+                    timedelta(hours=random.randint(1, 23), minutes=random.randint(0, 59))
+                )
+                BarangKeluar.objects.filter(pk=bk.pk).update(created_at=created_datetime)
+                keluar_count += 1
 
-        self.stdout.write(self.style.SUCCESS('Successfully seeded database!'))
+        self.stdout.write(self.style.SUCCESS(
+            f'Successfully seeded database! Created {masuk_count} incoming and {keluar_count} outgoing records.'
+        ))

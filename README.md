@@ -130,28 +130,33 @@ Jika Anda ingin langsung melihat aplikasi dengan banyak data (Kategori, Barang, 
 python manage.py seed_data
 ```
 
-> ⚠️ **CATATAN PENTING: Jika database Anda masih menggunakan struktur model lama**
+> ⚠️ **CATATAN PENTING: Langkah Reset & Build Ulang Database (Struktur FIFO Batching)**
 > 
-> Jika Anda sebelumnya sudah memiliki data lama di PostgreSQL sebelum perubahan arsitektur FIFO/Batch ini (yaitu saat field `tanggal_kadaluarsa` masih menempel di tabel Barang dan belum ada tabel `StokBatch` atau `BarangKeluarBatch`), menjalankan migrasi atau `seed_data` dapat menyebabkan error kecocokan skema.
+> Jika database Anda sebelumnya menggunakan model lama, Anda harus mereset database secara bersih untuk menerapkan skema FIFO Batching baru. Ikuti perintah terminal berikut:
 > 
-> Ikuti langkah berikut untuk mereset database PostgreSQL secara bersih:
-> 
-> 1. **Hapus dan Buat Ulang Database PostgreSQL:**
->    Masuk ke terminal PostgreSQL (`psql` atau pgAdmin) dan jalankan perintah SQL berikut:
->    ```sql
->    DROP DATABASE rmaisyah_inventory;
->    CREATE DATABASE rmaisyah_inventory;
+> 1. **Hapus & Buat Ulang Database (PowerShell / Command Prompt):**
+>    ```powershell
+>    # Masukkan password database Anda (default: valen123)
+>    $env:PGPASSWORD="valen123"
+>    
+>    # Hapus database lama secara paksa (memutus semua koneksi aktif)
+>    psql -U postgres -h localhost -c "DROP DATABASE IF EXISTS rmaisyah_inventory WITH (FORCE);"
+>    
+>    # Buat kembali database kosong baru
+>    psql -U postgres -h localhost -c "CREATE DATABASE rmaisyah_inventory;"
 >    ```
-> 2. **Jalankan Ulang Migrasi Skema Baru:**
->    Jalankan migrasi untuk membangun tabel-tabel baru:
+> 
+> 2. **Jalankan Ulang Migrasi & Skema Baru:**
 >    ```powershell
 >    python manage.py migrate
 >    ```
+> 
 > 3. **Buat Akun Admin (Superuser) Baru:**
 >    ```powershell
 >    python manage.py createsuperuser
 >    ```
-> 4. **Jalankan Ulang Seed Data:**
+> 
+> 4. **Jalankan Seed Data Baru:**
 >    ```powershell
 >    python manage.py seed_data
 >    ```

@@ -10,4 +10,8 @@ urlpatterns = [
     # Barang Keluar
     path('keluar/', views.BarangKeluarListView.as_view(), name='keluar_list'),
     path('keluar/tambah/', views.BarangKeluarCreateView.as_view(), name='keluar_create'),
+    # Log Ledger
+    path('ledger/', views.LedgerListView.as_view(), name='ledger_list'),
+    path('ledger/export/csv/', views.export_ledger_csv, name='ledger_csv'),
+    path('ledger/export/pdf/', views.export_ledger_pdf, name='ledger_pdf'),
 ]

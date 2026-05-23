@@ -5,7 +5,7 @@ from .models import Barang, Kategori, Satuan
 class BarangForm(forms.ModelForm):
     class Meta:
         model = Barang
-        fields = ['nama', 'kategori', 'satuan', 'stok_minimal', 'stok_saat_ini', 'tanggal_kadaluarsa']
+        fields = ['nama', 'kategori', 'satuan', 'stok_minimal', 'stok_saat_ini']
         widgets = {
             'nama': forms.TextInput(attrs={
                 'class': 'form-input', 'placeholder': 'Nama bahan baku...'
@@ -18,10 +18,13 @@ class BarangForm(forms.ModelForm):
             'stok_saat_ini': forms.NumberInput(attrs={
                 'class': 'form-input', 'min': '0'
             }),
-            'tanggal_kadaluarsa': forms.DateInput(attrs={
-                'class': 'form-input', 'type': 'date'
-            }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['stok_saat_ini'].disabled = True
+            self.fields['stok_saat_ini'].required = False
 
 
 class KategoriForm(forms.ModelForm):
