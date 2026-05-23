@@ -5,7 +5,7 @@ from .models import BarangMasuk, BarangKeluar
 class BarangMasukForm(forms.ModelForm):
     class Meta:
         model = BarangMasuk
-        fields = ['barang', 'jumlah', 'supplier', 'tanggal', 'tanggal_kadaluarsa', 'keterangan']
+        fields = ['barang', 'jumlah', 'supplier', 'tanggal', 'keterangan']
         widgets = {
             'barang': forms.Select(attrs={'class': 'form-select'}),
             'jumlah': forms.NumberInput(attrs={
@@ -15,9 +15,6 @@ class BarangMasukForm(forms.ModelForm):
                 'class': 'form-input', 'placeholder': 'Nama supplier...'
             }),
             'tanggal': forms.DateInput(attrs={
-                'class': 'form-input', 'type': 'date'
-            }),
-            'tanggal_kadaluarsa': forms.DateInput(attrs={
                 'class': 'form-input', 'type': 'date'
             }),
             'keterangan': forms.Textarea(attrs={
