@@ -136,7 +136,7 @@ class Command(BaseCommand):
         import os
         su_username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
         su_email    = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@admin.com')
-        su_password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', '')
+        su_password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', 'admin123')
 
         if su_password and not User.objects.filter(username=su_username).exists():
             User.objects.create_superuser(
