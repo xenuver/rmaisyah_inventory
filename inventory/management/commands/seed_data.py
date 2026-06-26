@@ -31,15 +31,6 @@ class Command(BaseCommand):
         skip_if_exists = kwargs.get('skip_if_exists', False)
         force = kwargs.get('force', False)
 
-        # ── Cek apakah data sudah ada ──────────────────────────────────────
-        has_data = Kategori.objects.exists() or Satuan.objects.exists() or Barang.objects.exists()
-
-        if has_data and skip_if_exists and not force:
-            self.stdout.write(self.style.WARNING(
-                'Data sudah ada di database. Seed dilewati (gunakan --force untuk seed ulang).'
-            ))
-            return
-
         if force:
             self.stdout.write(self.style.WARNING('--force aktif: Menghapus semua data lama...'))
             from transactions.models import BarangKeluarBatch, StokBatch
