@@ -9,9 +9,30 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+# - libpq-dev    : psycopg (PostgreSQL)
+# - gcc g++      : compile C extensions
+# - pkg-config   : needed by pycairo, freetype-py
+# - libcairo2-dev: pycairo
+# - libffi-dev   : cffi / cryptography
+# - libssl-dev   : cryptography
+# - libxml2-dev libxslt-dev: lxml
+# - libjpeg-dev zlib1g-dev libpng-dev: pillow
+# - libfreetype6-dev: freetype-py / reportlab
+# - curl         : healthcheck / utility
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     gcc \
+    g++ \
+    pkg-config \
+    libcairo2-dev \
+    libffi-dev \
+    libssl-dev \
+    libxml2-dev \
+    libxslt-dev \
+    libjpeg-dev \
+    zlib1g-dev \
+    libpng-dev \
+    libfreetype6-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
