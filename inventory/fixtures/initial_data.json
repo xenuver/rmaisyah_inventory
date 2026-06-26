@@ -1,0 +1,471 @@
+[
+{
+  "model": "inventory.kategori",
+  "pk": 1,
+  "fields": {
+    "nama": "Bahan Pokok",
+    "deskripsi": "Kategori untuk bahan pokok",
+    "created_at": "2026-05-23T11:49:59.294Z"
+  }
+},
+{
+  "model": "inventory.kategori",
+  "pk": 2,
+  "fields": {
+    "nama": "Sayuran",
+    "deskripsi": "Kategori untuk sayuran",
+    "created_at": "2026-05-23T11:49:59.296Z"
+  }
+},
+{
+  "model": "inventory.kategori",
+  "pk": 3,
+  "fields": {
+    "nama": "Bumbu & Rempah",
+    "deskripsi": "Kategori untuk bumbu & rempah",
+    "created_at": "2026-05-23T11:49:59.301Z"
+  }
+},
+{
+  "model": "inventory.kategori",
+  "pk": 4,
+  "fields": {
+    "nama": "Daging & Ikan",
+    "deskripsi": "Kategori untuk daging & ikan",
+    "created_at": "2026-05-23T11:49:59.302Z"
+  }
+},
+{
+  "model": "inventory.kategori",
+  "pk": 5,
+  "fields": {
+    "nama": "Minuman",
+    "deskripsi": "Kategori untuk minuman",
+    "created_at": "2026-05-23T11:49:59.305Z"
+  }
+},
+{
+  "model": "inventory.kategori",
+  "pk": 6,
+  "fields": {
+    "nama": "Alat Kebersihan",
+    "deskripsi": "Kategori untuk alat kebersihan",
+    "created_at": "2026-05-23T11:49:59.305Z"
+  }
+},
+{
+  "model": "inventory.kategori",
+  "pk": 7,
+  "fields": {
+    "nama": "Lainnya",
+    "deskripsi": "Kategori untuk lainnya",
+    "created_at": "2026-05-23T11:49:59.305Z"
+  }
+},
+{
+  "model": "inventory.satuan",
+  "pk": 1,
+  "fields": {
+    "nama": "Kg"
+  }
+},
+{
+  "model": "inventory.satuan",
+  "pk": 2,
+  "fields": {
+    "nama": "Liter"
+  }
+},
+{
+  "model": "inventory.satuan",
+  "pk": 3,
+  "fields": {
+    "nama": "Pcs"
+  }
+},
+{
+  "model": "inventory.satuan",
+  "pk": 4,
+  "fields": {
+    "nama": "Ikat"
+  }
+},
+{
+  "model": "inventory.satuan",
+  "pk": 5,
+  "fields": {
+    "nama": "Gram"
+  }
+},
+{
+  "model": "inventory.satuan",
+  "pk": 6,
+  "fields": {
+    "nama": "Dus"
+  }
+},
+{
+  "model": "inventory.satuan",
+  "pk": 7,
+  "fields": {
+    "nama": "Botol"
+  }
+},
+{
+  "model": "inventory.satuan",
+  "pk": 8,
+  "fields": {
+    "nama": "Karung"
+  }
+},
+{
+  "model": "inventory.satuan",
+  "pk": 9,
+  "fields": {
+    "nama": "Pack"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 1,
+  "fields": {
+    "nama": "Beras Premium",
+    "kategori": 1,
+    "satuan": 1,
+    "stok_minimal": 50,
+    "stok_saat_ini": 26,
+    "created_at": "2026-05-23T11:49:59.326Z",
+    "updated_at": "2026-05-23T11:49:59.326Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 2,
+  "fields": {
+    "nama": "Beras Biasa",
+    "kategori": 1,
+    "satuan": 1,
+    "stok_minimal": 50,
+    "stok_saat_ini": 52,
+    "created_at": "2026-05-23T11:49:59.326Z",
+    "updated_at": "2026-05-23T11:49:59.326Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 3,
+  "fields": {
+    "nama": "Minyak Goreng",
+    "kategori": 1,
+    "satuan": 2,
+    "stok_minimal": 20,
+    "stok_saat_ini": 40,
+    "created_at": "2026-05-23T11:49:59.332Z",
+    "updated_at": "2026-05-23T11:49:59.332Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 4,
+  "fields": {
+    "nama": "Tepung Terigu",
+    "kategori": 1,
+    "satuan": 1,
+    "stok_minimal": 10,
+    "stok_saat_ini": 60,
+    "created_at": "2026-05-23T11:49:59.333Z",
+    "updated_at": "2026-05-23T11:49:59.333Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 5,
+  "fields": {
+    "nama": "Gula Pasir",
+    "kategori": 1,
+    "satuan": 1,
+    "stok_minimal": 15,
+    "stok_saat_ini": 399,
+    "created_at": "2026-05-23T11:49:59.333Z",
+    "updated_at": "2026-05-23T11:49:59.333Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 6,
+  "fields": {
+    "nama": "Bawang Merah",
+    "kategori": 3,
+    "satuan": 1,
+    "stok_minimal": 5,
+    "stok_saat_ini": 243,
+    "created_at": "2026-05-23T11:49:59.334Z",
+    "updated_at": "2026-05-23T11:49:59.334Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 7,
+  "fields": {
+    "nama": "Bawang Putih",
+    "kategori": 3,
+    "satuan": 1,
+    "stok_minimal": 5,
+    "stok_saat_ini": 179,
+    "created_at": "2026-05-23T11:49:59.335Z",
+    "updated_at": "2026-05-23T11:49:59.335Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 8,
+  "fields": {
+    "nama": "Cabai Merah",
+    "kategori": 2,
+    "satuan": 1,
+    "stok_minimal": 3,
+    "stok_saat_ini": 191,
+    "created_at": "2026-05-23T11:49:59.335Z",
+    "updated_at": "2026-05-23T11:49:59.335Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 9,
+  "fields": {
+    "nama": "Cabai Rawit",
+    "kategori": 2,
+    "satuan": 1,
+    "stok_minimal": 2,
+    "stok_saat_ini": 181,
+    "created_at": "2026-05-23T11:49:59.336Z",
+    "updated_at": "2026-05-23T11:49:59.336Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 10,
+  "fields": {
+    "nama": "Ayam Potong",
+    "kategori": 4,
+    "satuan": 1,
+    "stok_minimal": 10,
+    "stok_saat_ini": 412,
+    "created_at": "2026-05-23T11:49:59.337Z",
+    "updated_at": "2026-05-23T11:49:59.337Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 11,
+  "fields": {
+    "nama": "Daging Sapi",
+    "kategori": 4,
+    "satuan": 1,
+    "stok_minimal": 5,
+    "stok_saat_ini": 168,
+    "created_at": "2026-05-23T11:49:59.337Z",
+    "updated_at": "2026-05-23T11:49:59.337Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 12,
+  "fields": {
+    "nama": "Telur Ayam",
+    "kategori": 4,
+    "satuan": 1,
+    "stok_minimal": 10,
+    "stok_saat_ini": 139,
+    "created_at": "2026-05-23T11:49:59.339Z",
+    "updated_at": "2026-05-23T11:49:59.339Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 13,
+  "fields": {
+    "nama": "Ikan Nila",
+    "kategori": 4,
+    "satuan": 1,
+    "stok_minimal": 5,
+    "stok_saat_ini": 106,
+    "created_at": "2026-05-23T11:49:59.340Z",
+    "updated_at": "2026-05-23T11:49:59.340Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 14,
+  "fields": {
+    "nama": "Tomat",
+    "kategori": 2,
+    "satuan": 1,
+    "stok_minimal": 3,
+    "stok_saat_ini": 3,
+    "created_at": "2026-05-23T11:49:59.341Z",
+    "updated_at": "2026-05-23T11:49:59.341Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 15,
+  "fields": {
+    "nama": "Wortel",
+    "kategori": 2,
+    "satuan": 1,
+    "stok_minimal": 2,
+    "stok_saat_ini": 85,
+    "created_at": "2026-05-23T11:49:59.342Z",
+    "updated_at": "2026-05-23T11:49:59.342Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 16,
+  "fields": {
+    "nama": "Kecap Manis",
+    "kategori": 3,
+    "satuan": 7,
+    "stok_minimal": 10,
+    "stok_saat_ini": 359,
+    "created_at": "2026-05-23T11:49:59.343Z",
+    "updated_at": "2026-05-23T11:49:59.343Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 17,
+  "fields": {
+    "nama": "Saus Sambal",
+    "kategori": 3,
+    "satuan": 7,
+    "stok_minimal": 5,
+    "stok_saat_ini": 216,
+    "created_at": "2026-05-23T11:49:59.343Z",
+    "updated_at": "2026-05-23T11:49:59.343Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 18,
+  "fields": {
+    "nama": "Garam",
+    "kategori": 3,
+    "satuan": 9,
+    "stok_minimal": 10,
+    "stok_saat_ini": 235,
+    "created_at": "2026-05-23T11:49:59.344Z",
+    "updated_at": "2026-05-23T11:49:59.344Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 19,
+  "fields": {
+    "nama": "Merica Bubuk",
+    "kategori": 3,
+    "satuan": 9,
+    "stok_minimal": 20,
+    "stok_saat_ini": 225,
+    "created_at": "2026-05-23T11:49:59.344Z",
+    "updated_at": "2026-05-23T11:49:59.344Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 20,
+  "fields": {
+    "nama": "Teh Celup",
+    "kategori": 5,
+    "satuan": 6,
+    "stok_minimal": 10,
+    "stok_saat_ini": 76,
+    "created_at": "2026-05-23T11:49:59.345Z",
+    "updated_at": "2026-05-23T11:49:59.345Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 21,
+  "fields": {
+    "nama": "Kopi Bubuk",
+    "kategori": 5,
+    "satuan": 1,
+    "stok_minimal": 5,
+    "stok_saat_ini": 241,
+    "created_at": "2026-05-23T11:49:59.346Z",
+    "updated_at": "2026-05-23T11:49:59.346Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 22,
+  "fields": {
+    "nama": "Es Batu",
+    "kategori": 5,
+    "satuan": 8,
+    "stok_minimal": 5,
+    "stok_saat_ini": 141,
+    "created_at": "2026-05-23T11:49:59.346Z",
+    "updated_at": "2026-05-23T11:49:59.346Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 23,
+  "fields": {
+    "nama": "Sabun Cuci Piring",
+    "kategori": 6,
+    "satuan": 2,
+    "stok_minimal": 5,
+    "stok_saat_ini": 104,
+    "created_at": "2026-05-23T11:49:59.347Z",
+    "updated_at": "2026-05-23T11:49:59.347Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 24,
+  "fields": {
+    "nama": "Spons Cuci",
+    "kategori": 6,
+    "satuan": 3,
+    "stok_minimal": 10,
+    "stok_saat_ini": 53,
+    "created_at": "2026-05-23T11:49:59.347Z",
+    "updated_at": "2026-05-23T11:49:59.347Z"
+  }
+},
+{
+  "model": "inventory.barang",
+  "pk": 25,
+  "fields": {
+    "nama": "Plastik Bungkus",
+    "kategori": 7,
+    "satuan": 9,
+    "stok_minimal": 20,
+    "stok_saat_ini": 36,
+    "created_at": "2026-05-23T11:49:59.347Z",
+    "updated_at": "2026-05-23T11:49:59.347Z"
+  }
+},
+{
+  "model": "auth.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1200000$SnUZ6L5t1RDl0vUKdlG8Sm$eJKkX0G9RV+yh3EJ1AoLJVHswVTrvBFeIYYzCAHB89A=",
+    "last_login": "2026-06-16T17:17:34.321Z",
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "",
+    "last_name": "",
+    "email": "admin@admin.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-05-23T11:49:46.346Z",
+    "groups": [],
+    "user_permissions": []
+  }
+}
+]

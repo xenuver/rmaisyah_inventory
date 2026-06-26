@@ -1,172 +1,151 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from datetime import timedelta
-import random
+from django.contrib.auth import get_user_model
 
 from inventory.models import Kategori, Satuan, Barang
-from transactions.models import BarangMasuk, BarangKeluar, StokBatch, BarangKeluarBatch
+
+User = get_user_model()
+
 
 class Command(BaseCommand):
-    help = 'Seed database with dummy data for Rumah Makan Aisyah'
+    help = (
+        'Seed database dengan data awal untuk Rumah Makan Aisyah. '
+        'Aman dijalankan berulang kali — data yang sudah ada tidak akan ditimpa.'
+    )
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--skip-if-exists',
+            action='store_true',
+            help='Lewati seeding jika data sudah ada di database (default: selalu idempotent).',
+        )
+        parser.add_argument(
+            '--force',
+            action='store_true',
+            help='Hapus semua data lama lalu seed ulang dari awal (BERBAHAYA di production!).',
+        )
 
     def handle(self, *args, **kwargs):
-        self.stdout.write('Clearing existing data...')
-        
-        # Hapus data secara teratur untuk menghindari ProtectedError
-        BarangKeluarBatch.objects.all().delete()
-        StokBatch.objects.all().delete()
-        BarangMasuk.objects.all().delete()
-        BarangKeluar.objects.all().delete()
-        Barang.objects.all().delete()
-        Kategori.objects.all().delete()
-        Satuan.objects.all().delete()
+        skip_if_exists = kwargs.get('skip_if_exists', False)
+        force = kwargs.get('force', False)
 
-        self.stdout.write('Seeding fresh data...')
+        # ── Cek apakah data sudah ada ──────────────────────────────────────
+        has_data = Kategori.objects.exists() or Satuan.objects.exists() or Barang.objects.exists()
 
-        # 1. Kategori
-        kategoris = ['Bahan Pokok', 'Sayuran', 'Bumbu & Rempah', 'Daging & Ikan', 'Minuman', 'Alat Kebersihan', 'Lainnya']
+        if has_data and skip_if_exists and not force:
+            self.stdout.write(self.style.WARNING(
+                'Data sudah ada di database. Seed dilewati (gunakan --force untuk seed ulang).'
+            ))
+            return
+
+        if force:
+            self.stdout.write(self.style.WARNING('--force aktif: Menghapus semua data lama...'))
+            from transactions.models import BarangKeluarBatch, StokBatch, BarangMasuk, BarangKeluar
+            BarangKeluarBatch.objects.all().delete()
+            StokBatch.objects.all().delete()
+            BarangMasuk.objects.all().delete()
+            BarangKeluar.objects.all().delete()
+            Barang.objects.all().delete()
+            Kategori.objects.all().delete()
+            Satuan.objects.all().delete()
+            self.stdout.write('Data lama dihapus. Mulai seeding...')
+
+        # ── 1. Kategori ────────────────────────────────────────────────────
+        kategoris_data = [
+            ('Bahan Pokok',    'Kategori untuk bahan pokok'),
+            ('Sayuran',        'Kategori untuk sayuran'),
+            ('Bumbu & Rempah', 'Kategori untuk bumbu & rempah'),
+            ('Daging & Ikan',  'Kategori untuk daging & ikan'),
+            ('Minuman',        'Kategori untuk minuman'),
+            ('Alat Kebersihan','Kategori untuk alat kebersihan'),
+            ('Lainnya',        'Kategori untuk lainnya'),
+        ]
         kat_objs = {}
-        for k in kategoris:
-            obj, _ = Kategori.objects.get_or_create(nama=k, defaults={'deskripsi': f'Kategori untuk {k.lower()}'})
-            kat_objs[k] = obj
+        kat_created = 0
+        for nama, deskripsi in kategoris_data:
+            obj, created = Kategori.objects.get_or_create(
+                nama=nama,
+                defaults={'deskripsi': deskripsi}
+            )
+            kat_objs[nama] = obj
+            if created:
+                kat_created += 1
 
-        # 2. Satuan
-        satuans = ['Kg', 'Liter', 'Pcs', 'Ikat', 'Gram', 'Dus', 'Botol', 'Karung', 'Pack']
+        self.stdout.write(f'  Kategori: {kat_created} dibuat, {len(kategoris_data) - kat_created} sudah ada.')
+
+        # ── 2. Satuan ──────────────────────────────────────────────────────
+        satuans_data = ['Kg', 'Liter', 'Pcs', 'Ikat', 'Gram', 'Dus', 'Botol', 'Karung', 'Pack']
         sat_objs = {}
-        for s in satuans:
-            obj, _ = Satuan.objects.get_or_create(nama=s)
-            sat_objs[s] = obj
+        sat_created = 0
+        for nama in satuans_data:
+            obj, created = Satuan.objects.get_or_create(nama=nama)
+            sat_objs[nama] = obj
+            if created:
+                sat_created += 1
 
-        # 3. Barang
+        self.stdout.write(f'  Satuan  : {sat_created} dibuat, {len(satuans_data) - sat_created} sudah ada.')
+
+        # ── 3. Barang ──────────────────────────────────────────────────────
+        # Format: (nama, kategori, satuan, stok_minimal)
+        # stok_saat_ini tidak diisi di sini karena sudah dikelola melalui transaksi.
         barangs_data = [
-            ('Beras Premium', 'Bahan Pokok', 'Kg', 50),
-            ('Beras Biasa', 'Bahan Pokok', 'Kg', 50),
-            ('Minyak Goreng', 'Bahan Pokok', 'Liter', 20),
-            ('Tepung Terigu', 'Bahan Pokok', 'Kg', 10),
-            ('Gula Pasir', 'Bahan Pokok', 'Kg', 15),
-            ('Bawang Merah', 'Bumbu & Rempah', 'Kg', 5),
-            ('Bawang Putih', 'Bumbu & Rempah', 'Kg', 5),
-            ('Cabai Merah', 'Sayuran', 'Kg', 3),
-            ('Cabai Rawit', 'Sayuran', 'Kg', 2),
-            ('Ayam Potong', 'Daging & Ikan', 'Kg', 10),
-            ('Daging Sapi', 'Daging & Ikan', 'Kg', 5),
-            ('Telur Ayam', 'Daging & Ikan', 'Kg', 10),
-            ('Ikan Nila', 'Daging & Ikan', 'Kg', 5),
-            ('Tomat', 'Sayuran', 'Kg', 3),
-            ('Wortel', 'Sayuran', 'Kg', 2),
-            ('Kecap Manis', 'Bumbu & Rempah', 'Botol', 10),
-            ('Saus Sambal', 'Bumbu & Rempah', 'Botol', 5),
-            ('Garam', 'Bumbu & Rempah', 'Pack', 10),
-            ('Merica Bubuk', 'Bumbu & Rempah', 'Pack', 20),
-            ('Teh Celup', 'Minuman', 'Dus', 10),
-            ('Kopi Bubuk', 'Minuman', 'Kg', 5),
-            ('Es Batu', 'Minuman', 'Karung', 5),
-            ('Sabun Cuci Piring', 'Alat Kebersihan', 'Liter', 5),
-            ('Spons Cuci', 'Alat Kebersihan', 'Pcs', 10),
-            ('Plastik Bungkus', 'Lainnya', 'Pack', 20),
+            ('Beras Premium',     'Bahan Pokok',    'Kg',    50),
+            ('Beras Biasa',       'Bahan Pokok',    'Kg',    50),
+            ('Minyak Goreng',     'Bahan Pokok',    'Liter', 20),
+            ('Tepung Terigu',     'Bahan Pokok',    'Kg',    10),
+            ('Gula Pasir',        'Bahan Pokok',    'Kg',    15),
+            ('Bawang Merah',      'Bumbu & Rempah', 'Kg',     5),
+            ('Bawang Putih',      'Bumbu & Rempah', 'Kg',     5),
+            ('Cabai Merah',       'Sayuran',        'Kg',     3),
+            ('Cabai Rawit',       'Sayuran',        'Kg',     2),
+            ('Ayam Potong',       'Daging & Ikan',  'Kg',    10),
+            ('Daging Sapi',       'Daging & Ikan',  'Kg',     5),
+            ('Telur Ayam',        'Daging & Ikan',  'Kg',    10),
+            ('Ikan Nila',         'Daging & Ikan',  'Kg',     5),
+            ('Tomat',             'Sayuran',        'Kg',     3),
+            ('Wortel',            'Sayuran',        'Kg',     2),
+            ('Kecap Manis',       'Bumbu & Rempah', 'Botol', 10),
+            ('Saus Sambal',       'Bumbu & Rempah', 'Botol',  5),
+            ('Garam',             'Bumbu & Rempah', 'Pack',  10),
+            ('Merica Bubuk',      'Bumbu & Rempah', 'Pack',  20),
+            ('Teh Celup',         'Minuman',        'Dus',   10),
+            ('Kopi Bubuk',        'Minuman',        'Kg',     5),
+            ('Es Batu',           'Minuman',        'Karung', 5),
+            ('Sabun Cuci Piring', 'Alat Kebersihan','Liter',  5),
+            ('Spons Cuci',        'Alat Kebersihan','Pcs',   10),
+            ('Plastik Bungkus',   'Lainnya',        'Pack',  20),
         ]
 
-        barang_objs = []
+        brg_created = 0
         for nama, kat_nama, sat_nama, min_stok in barangs_data:
-            obj = Barang.objects.create(
+            _, created = Barang.objects.get_or_create(
                 nama=nama,
-                kategori=kat_objs[kat_nama],
-                satuan=sat_objs[sat_nama],
-                stok_minimal=min_stok,
-                stok_saat_ini=0
+                defaults={
+                    'kategori': kat_objs[kat_nama],
+                    'satuan': sat_objs[sat_nama],
+                    'stok_minimal': min_stok,
+                    'stok_saat_ini': 0,
+                }
             )
-            barang_objs.append(obj)
+            if created:
+                brg_created += 1
 
-        self.stdout.write(f'Created {len(kategoris)} Kategori, {len(satuans)} Satuan, {len(barangs_data)} Barang')
+        self.stdout.write(f'  Barang  : {brg_created} dibuat, {len(barangs_data) - brg_created} sudah ada.')
 
-        # 4. Generate Events (Masuk & Keluar) over the last 30 days
-        now = timezone.now()
-        suppliers = ['PT. Pangan Makmur', 'Toko Sembako Abadi', 'Pasar Tradisional Induk', 'Agen Telur Berkah']
-        
-        events = []
-        # Generate 120 incoming events
-        for _ in range(120):
-            days_ago = random.randint(0, 30)
-            tgl = (now - timedelta(days=days_ago)).date()
-            events.append({
-                'type': 'masuk',
-                'tanggal': tgl,
-            })
-            
-        # Generate 250 outgoing events
-        for _ in range(250):
-            days_ago = random.randint(0, 30)
-            tgl = (now - timedelta(days=days_ago)).date()
-            events.append({
-                'type': 'keluar',
-                'tanggal': tgl,
-            })
-            
-        # Urutkan secara kronologis (sangat penting untuk keandalan FIFO dan validasi stok)
-        events.sort(key=lambda x: x['tanggal'])
+        # ── 4. Superuser default ───────────────────────────────────────────
+        # Dibuat hanya jika belum ada user manapun, atau jika username belum ada.
+        import os
+        su_username = os.environ.get('DJANGO_SUPERUSER_USERNAME', 'admin')
+        su_email    = os.environ.get('DJANGO_SUPERUSER_EMAIL', 'admin@admin.com')
+        su_password = os.environ.get('DJANGO_SUPERUSER_PASSWORD', '')
 
-        self.stdout.write(f'Generated {len(events)} events. Processing chronologically...')
-        
-        masuk_count = 0
-        keluar_count = 0
+        if su_password and not User.objects.filter(username=su_username).exists():
+            User.objects.create_superuser(
+                username=su_username,
+                email=su_email,
+                password=su_password,
+            )
+            self.stdout.write(f'  Superuser "{su_username}" dibuat.')
+        elif User.objects.filter(username=su_username).exists():
+            self.stdout.write(f'  Superuser "{su_username}" sudah ada, dilewati.')
 
-        for ev in events:
-            tgl = ev['tanggal']
-            b = random.choice(barang_objs)
-            
-            if ev['type'] == 'masuk':
-                qty = random.randint(15, 80)
-                exp_date = None
-                if b.kategori.nama in ['Bahan Pokok', 'Minuman', 'Bumbu & Rempah']:
-                    exp_date = tgl + timedelta(days=random.randint(14, 150))
-                
-                bm = BarangMasuk.objects.create(
-                    barang=b,
-                    jumlah=qty,
-                    supplier=random.choice(suppliers),
-                    keterangan='Restock pasokan dapur',
-                    tanggal=tgl,
-                    tanggal_kadaluarsa=exp_date
-                )
-                
-                # Update created_at untuk visualisasi yang rapi
-                created_datetime = timezone.make_aware(
-                    timezone.datetime.combine(tgl, timezone.datetime.min.time()) + 
-                    timedelta(hours=random.randint(1, 23), minutes=random.randint(0, 59))
-                )
-                BarangMasuk.objects.filter(pk=bm.pk).update(created_at=created_datetime)
-                if hasattr(bm, 'batch'):
-                    bm.batch.created_at = created_datetime
-                    bm.batch.save(update_fields=['created_at'])
-                
-                masuk_count += 1
-            else:
-                # Muat ulang dari db untuk mendapatkan sisa stok terkini
-                b.refresh_from_db()
-                if b.stok_saat_ini <= 0:
-                    continue
-                
-                qty = random.randint(1, min(b.stok_saat_ini, 15))
-                alasan = random.choices(
-                    ['pemakaian_dapur', 'rusak', 'kadaluarsa', 'lainnya'], 
-                    weights=[85, 5, 2, 8]
-                )[0]
-                
-                bk = BarangKeluar.objects.create(
-                    barang=b,
-                    jumlah=qty,
-                    alasan=alasan,
-                    keterangan='Pemakaian dapur harian' if alasan == 'pemakaian_dapur' else 'Pembersihan bahan rusak',
-                    tanggal=tgl
-                )
-                
-                created_datetime = timezone.make_aware(
-                    timezone.datetime.combine(tgl, timezone.datetime.min.time()) + 
-                    timedelta(hours=random.randint(1, 23), minutes=random.randint(0, 59))
-                )
-                BarangKeluar.objects.filter(pk=bk.pk).update(created_at=created_datetime)
-                keluar_count += 1
-
-        self.stdout.write(self.style.SUCCESS(
-            f'Successfully seeded database! Created {masuk_count} incoming and {keluar_count} outgoing records.'
-        ))
+        self.stdout.write(self.style.SUCCESS('✔ Seed selesai! Data awal sudah tersedia.'))
